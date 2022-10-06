@@ -112,7 +112,7 @@ ggplot(data = danish_kings, aes(x = midyear, y = reign_duration)) +
 ```
 
 
-## Final tasks:
+##Final tasks:
 
 1) Plot: In the facetted plot above, move the legend from the current position on the side to below the facets, and label it "Country" instead of "Entity". 
 
