@@ -1,0 +1,68 @@
+---
+title: "2) Using rvest to scrape data of my interest "
+author: "Anelia Boyadzhieva"
+date: "updated `r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Github
+
+Link to github, where you can find the rmd and html: https://github.com/Digital-Methods-HASS/au671033_Aleksandrova_Anelia
+
+# Goal
+
+My goal is to scrape data about the top free medical iPhone and iPad apps in App Store in Denmark (from the website similarweb.com). I wanted to scrape data for both iPhone and iPad, in order to compare the results and be able to look at which applications users like to use on different devices. 
+
+# Challenge
+Getting the dataframe from similarweb to look semi clean, like the one at the bottom from worldometers.
+
+# Solution
+
+First, I installed these libraries:
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(rvest)
+library(dplyr)
+library(tidyr)
+```
+
+Then I wrote a function which takes a website as an argument, it scrapes it and creates a dataframe.
+
+```{r scrape the site}
+scrape_medical_apps <- function(website){
+    url <- read_html(website)
+    device_table <- url %>% 
+            html_nodes("table") %>%
+            html_table()  
+  device_table <- do.call(cbind,unlist(device_table, recursive = FALSE))
+}
+```
+## Scrape the data for top iPhone medical apps 
+I gave the webpage as an argument and saved it in the variable table_iphone
+```{r scrape iphone}
+table_iphone <- scrape_medical_apps("https://www.similarweb.com/apps/top/apple/store-rank/dk/medical/top-free/iphone/")
+table_iphone %>% 
+    head()
+```
+## Scrape the data for top iPad medical apps
+I gave the webpage as an argument and saved it in the variable table_ipad
+```{r scrape ipad}
+table_ipad <- scrape_medical_apps("https://www.similarweb.com/apps/top/apple/store-rank/dk/medical/top-free/ipad/")
+table_ipad %>% 
+    head()
+```
+
+# Trying out the function on another website 
+I wanted to try and run the function on another website to see if it runs properly, because the other dataframes looked a little weird 
+```{r srape test}
+table_population <- scrape_medical_apps("https://www.worldometers.info/world-population/population-by-country/")
+table_population %>%
+  head()
+```
