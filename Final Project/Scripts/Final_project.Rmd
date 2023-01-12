@@ -1,0 +1,152 @@
+---
+title: "Sentiment analysis and visualization with R"
+author: "Anelia Aleksandrova Boyadzhieva"
+date: "2022-12-28"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+  word_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparing the data
+
+Installing libraries
+
+```{r libraries}
+#Loading libraries 
+library(tidyverse)
+library(sentimentr)
+library(ggplot2)
+library(dplyr)
+```
+
+## Loading data by using read.csv() and saving it in the variables redditY and redditX
+
+```{r data}
+redditY <- read.csv("TrollY_dataset.csv") #reading data for TrollY subreddit and assigning it to the redditY variable
+
+redditX <- read.csv("TrollX_dataset.csv") #reading data for TrollX subreddit and assigning it to the redditX variable
+```
+
+## Cleaning the data
+
+```{r}
+#fuction for cleaning data -> renaming and removing columns
+names <- function (x){
+    x <- rename(x, post_score = data.score)
+    x <- rename(x, date = Date)
+    x <- rename(x, post = data.title)
+    x <- x[, -5] #removing image url by column index 
+    x <- x[, -2] #removing utc by column index 
+}
+
+#running the function on both datasets and saving into variables
+redditXclean <- names(redditX)
+redditYclean <- names(redditY)
+```
+
+# Doing sentiment analysis with sentiment()
+
+```{r}
+#using sentiment() method to do sentiment analysis on column 'data.title' from dataset 'redditY'
+sentimentDataY <- sentiment(redditYclean$`post`) #assigning the new dataset to the variable 'sentimentDataY'
+view(sentimentDataY) #viewing the data wich is stored in the variable sentimentDataY
+sentimentDataY <- na.omit(sentimentDataY)
+
+#using sentiment() method to do sentiment analysis on column 'data.title' from dataset 'redditX'
+sentimentDataX <- sentiment(redditXclean$`post`) #assigning the new dataset to the variable 'sentimentDataX'
+view(sentimentDataX)
+sentimentDataX <- na.omit(sentimentDataX)
+```
+
+# Visualizing the data
+
+## Comparison of sentiments
+
+```{r}
+boxplot(sentimentDataY$sentiment, sentimentDataX$sentiment, #getting data from dataset 'sentimentDataY' and 'sentimentDataX' column 'sentiment' 
+        main = "Comparison of sentiments for subreddits TrollX and TrollY",
+        xlab = "Sentiment",
+        at = c(1,2), #positioning the two boxplots
+        names = c("TrollY", "TrollX"), #naming the two boxplots
+        col = c("green","lightblue"), #colour 
+        horizontal = TRUE, #positioning
+        frame = F
+        )
+```
+
+## Individual boxplots visualizing sentiments
+
+```{r}
+#Making a boxplot for TrollX
+boxplot(sentimentDataX$sentiment, #getting data from dataset 'sentimentDataX' column 'sentiment' 
+        main = "Boxplot for sentiments in TrollX subreddit", #name/headline
+        xlab = "Sentiment",
+        col = "lightblue", #colour
+        horizontal = TRUE, #positioning 
+        frame = F
+        )
+#Making a boxplot for TrollY
+boxplot(sentimentDataY$sentiment, #getting data from dataset 'sentimentDataY' column 'sentiment' 
+        main = "Boxplot for sentiments in TrollY subreddit", #name/headline
+        xlab = "Sentiment",
+        col = "green",  #colour
+        horizontal = TRUE, #positioning 
+        frame = F
+        )
+```
+
+## Individual plots showing the correlation between word count and sentiment
+
+Here you can see two plots for the subreddits TrollX and TrollY. The sentiment on the X axis and word cound on the Y axis.
+
+```{r}
+#Making ggplot and customizing color, names and theme
+wordCountSentimentX <- ggplot(data = sentimentDataX, mapping = aes(x = sort(sentimentDataX$sentiment, decreasing = TRUE), y = sentimentDataX$word_count)) + 
+  geom_point(color = "dodgerblue") +
+  labs(x = "Sentiment", y = "Word count", title = "Connection between word count and sentiment in TrollX") +
+  theme_light() 
+
+#Customizing title 
+wordCountSentimentX + theme(
+  plot.title = element_text(color="black", size=18, face="bold")
+)
+
+```
+
+```{r}
+#Making ggplot and customizing color, names and theme
+wordCountSentimentY <- ggplot(data = sentimentDataY, mapping = aes(x = sort(sentimentDataY$sentiment, decreasing = TRUE), y = sentimentDataY$word_count)) + 
+  geom_point(color = "green3") +
+  labs(x= "Sentiment", y= "Word count", title = "Connection between word count and sentiment in TrollY") +
+  theme_light()
+
+#Customizing title 
+wordCountSentimentY + theme(
+  plot.title = element_text(color="black", size=18, face="bold")
+)
+```
+
+## Boxplot comparing word count for TrollX and TrollY
+
+There was a clear difference between the sentiment score and word count for the two subreddits. The following boxplot shows the word count for the subreddits, where it is evident that TrollX(blue) users use fewer words in their posts, whereas TrollY (green) users use less. This says something about how the users express themselves in the different subreddits.
+
+```{r}
+boxplot(sentimentDataY$word_count, sentimentDataX$word_count,  #getting data from dataset 'sentimentDataY' and 'sentimentDataX' column 'word_count' 
+        main = "Comparison of word count for subreddits TrollX and TrollY",
+        xlab = "Word count",
+        at = c(1,2), #positioning the two boxplots
+        names = c("TrollY", "TrollX"), #naming the two boxplots
+        col = c("green","lightblue"),
+        horizontal = TRUE,
+        frame = F
+        )
+```
